@@ -1,0 +1,61 @@
+version: '2'
+
+services:      
+    prestashop:
+      image: 'prestashop/prestashop:1.7'
+      environment:
+        PS_DEV_MODE: 1 # The constant _PS_MODE_DEV_ will be set at true (default value: 0)
+        PS_HOST_MODE: 0 # The constant _PS_HOST_MODE_ will be set at true. Useful to simulate a PrestaShop Cloud environment. (default value: 0)
+        PS_DEMO_MODE: 0 # The constant _PS_DEMO_MODE_ will be set at true. Use it to create a demonstration shop. (default value: 0)
+        DB_SERVER: mysql # If set, the external MySQL database will be used instead of the volatile internal one (default value: localhost)
+        DB_USER: root # Override default MySQL user (default value: root)
+        DB_PASSWD: password # Override default MySQL password (default value: admin)
+        DB_PREFIX: ps_ # Override default tables prefix (default value: ps_)
+        DB_NAME: prestashop # Override default database name (default value: prestashop)
+        PS_INSTALL_AUTO: 1 # The installation will be executed. Useful to initialize your image faster. In some configurations, you may need to set PS_DOMAIN or PS_HANDLE_DYNAMIC_DOMAIN as well. (Please note that PrestaShop can be installed automatically from PS 1.5)
+        PS_ERASE_DB: 1 # Only with PS_INSTALL_AUTO=1. Drop and create the mysql database. All previous mysql data will be lost (default value: 0)
+        PS_DOMAIN: localhost # When installing automatically your shop, you can tell the shop how it will be reached. For advanced users only (no default value)
+        PS_LANGUAGE: es # Change the default language installed with PrestaShop (default value: en)
+        PS_COUNTRY: ES # Change the default country installed with PrestaShop (default value: GB)
+        PS_ALL_LANGUAGES: 0 # Install all the existing languages for the current version. (default value: 0)
+        PS_FOLDER_ADMIN: miadmin # Change the name of the admin folder (default value: admin. But will be automatically changed later)
+        PS_FOLDER_INSTALL: _install # Change the name of the install folder (default value: install. But must be changed anyway later)
+        PS_ENABLE_SSL: 0 # Enable SSL at PrestaShop installation. (default value: 0)
+        ADMIN_MAIL: admin@midominio.com # Override default admin email (default value: demo@prestashop.com)
+        ADMIN_PASSWD: geek1234 # Override default admin password (default value: prestashop_demo)
+        # If your IP / port (or domain) change between two executions of your container, you will need to modify this option:
+        PS_HANDLE_DYNAMIC_DOMAIN: 0 #Add specific configuration to handle dynamic domain (default value: 0)
+      ports:
+        - '80:80'
+        - '443:443'
+      links: 
+        - mysql:db
+      volumes:
+        - ./../../source/prestashop/themes:/var/www/html/themes
+        - ./../../source/prestashop/modules:/var/www/html/modules
+      depends_on:
+        - mysql
+    mysql:
+        image: mysql:5.7
+        restart: always
+        environment:
+            MYSQL_DATABASE: 'db'
+            MYSQL_USER: 'user'
+            MYSQL_PASSWORD: 'password'
+            MYSQL_ROOT_PASSWORD: 'password'
+        # ports:
+        # - '3306:3306'
+        expose:
+        - '3306'
+        volumes:
+        - ../../data/mysql:/var/lib/mysql
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        links: 
+            - mysql:db
+        ports:
+            - 8081:80
+        environment:
+            MYSQL_USER: 'user'
+            MYSQL_PASSWORD: 'password'
+            MYSQL_ROOT_PASSWORD: 'password'
